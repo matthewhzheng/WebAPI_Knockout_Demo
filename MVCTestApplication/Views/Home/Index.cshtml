@@ -1,0 +1,94 @@
+﻿@model MVCTestApplication.Models.UserProfile
+
+@{
+    ViewBag.Title = "Index";
+}
+@section scripts
+{
+    <script type='text/javascript'>
+  
+  
+        ko.applyBindings(new AppViewModel());
+
+
+        function AppViewModel() {
+            var self = this;
+            self.inputName = ko.observable("New User");
+            self.inputFavoriteNumber = ko.observable("8");
+            self.profiles = ko.observableArray([]);
+
+
+            
+            //operations
+            self.post = function () {
+                //read from observables by treating them like functions.
+                var userProfile = { userName: self.inputName(), favoriteNumber: self.inputFavoriteNumber() };
+
+
+                $.ajax({
+                    url: 'api/UserProfile',
+                    type: 'POST',
+                    data: JSON.stringify(userProfile),
+                    contentType: "application/json", //;charset=utf-8
+                    success: function (data) {
+                        self.profiles.removeAll();
+                        for (var i = 0; i < data.length; i++) {
+                            self.profiles.push(data[i]);
+                        }
+                    },
+                    error: function (data) { alert("u posted and failed"); }
+                });
+            };
+
+            self.get = function () {
+                alert("getting");
+                $.ajax({
+                    url: "api/UserProfile",
+                    method: "GET",
+                    success: function (data) {
+                        self.profiles.removeAll();
+                        for(var i = 0; i < data.length; i++) {
+                            self.profiles.push(data[i]);
+                        }
+                    }
+                });
+            };
+            
+            //page load
+            self.get();
+        }
+
+        //a click handler that is not associated with KO, you can ignore this.
+        function clickHandlerGet() {
+            $.ajax({
+                url: "api/UserProfile",
+                method: "GET",
+                success: function (data) { alert(JSON.stringify(data)); }
+            });
+        }
+
+
+</script>
+}
+
+
+<h2>Index</h2>
+<input type="button" value="Ajax GET" onclick="clickHandlerGet()"/>
+<h3>Exist Profiles</h3>
+<table>
+    <thead><tr>
+        <th>User Name</th><th>Favorite Number</th>
+    </tr></thead>
+    <tbody data-bind="foreach: profiles">
+        <tr>
+            <td data-bind="text: UserName"></td>
+            <td data-bind="text: FavoriteNumber"></td>
+        </tr>    
+    </tbody>
+</table>
+
+<h3>Add A New Profile</h3>
+<p>Profile name: <input data-bind="value: inputName" /></p>
+<p>Favorite Number: <input data-bind="value: inputFavoriteNumber" /></p>
+
+<input type="button" value="KO POST - Submit the Data" data-bind="click: post"/>
